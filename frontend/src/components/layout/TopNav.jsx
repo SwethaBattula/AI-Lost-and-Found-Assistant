@@ -4,9 +4,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const ROUTE_TITLES = {
-  '/': 'Dashboard Overview',
+  '/': 'Student Dashboard',
   '/lost-items/new': 'Report Lost Item',
   '/lost-items': 'My Lost Items',
+  '/community-lost-items': 'Community Lost Items',
   '/found-items/new': 'Report Found Item',
   '/found-items': 'My Found Items',
   '/matches': 'AI Matches',
@@ -51,9 +52,9 @@ const TopNav = ({ setMobileOpen }) => {
             {user?.full_name?.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-semibold text-white line-clamp-1">{user?.full_name || 'User'}</p>
+            <p className="text-xs font-semibold text-white line-clamp-1">{user?.full_name || 'Student'}</p>
             <p className="text-[10px] text-slate-400 flex items-center gap-1">
-              <ShieldCheck className="w-3 h-3 text-emerald-400" /> Verified
+              <ShieldCheck className="w-3 h-3 text-emerald-400" /> Student Account
             </p>
           </div>
         </Link>

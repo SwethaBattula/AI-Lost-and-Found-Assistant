@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
@@ -15,6 +15,7 @@ import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
 import ReportLostItem from './pages/lost/ReportLostItem';
 import MyLostItems from './pages/lost/MyLostItems';
+import CommunityLostItems from './pages/lost/CommunityLostItems';
 import ReportFoundItem from './pages/found/ReportFoundItem';
 import MyFoundItems from './pages/found/MyFoundItems';
 import Matches from './pages/Matches';
@@ -60,6 +61,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <MyLostItems />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/community-lost-items"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <CommunityLostItems />
                     </MainLayout>
                   </ProtectedRoute>
                 }

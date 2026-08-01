@@ -10,7 +10,9 @@ This platform leverages multimodal Artificial Intelligence—combining **semanti
 
 ## 2. Features
 
-- **User Authentication**: Secure registration, login, and session persistence using Argon2 password hashing and JWT bearer tokens.
+- **Personal Student Dashboard**: Displays strictly personal metrics (`My Lost Items`, `My Found Items`, `My Matches`) and personal activity logs (`My Recent Lost Reports`, `My Recent Found Reports`) scoped to the logged-in user.
+- **Community Lost Items**: Public community catalog (`/community-lost-items`) allowing finders to search and filter reported lost items across campus/community without exposing sensitive user contact details.
+- **Enhanced Report Found Workflow**: Optional workflow enabling finders to select an existing community lost report to automatically pre-fill item details before submitting.
 - **Lost Item Management**: Submit, view, filter, update, and delete lost item reports with image uploads.
 - **Found Item Management**: Register, view, filter, update, and delete found item reports with image uploads.
 - **Multimodal AI Matching Engine**:

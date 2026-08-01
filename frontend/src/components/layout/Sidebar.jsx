@@ -11,6 +11,7 @@ import {
   LogOut,
   X,
   Compass,
+  Users,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -30,6 +31,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Report Lost Item', path: '/lost-items/new', icon: PlusCircle },
     { label: 'My Lost Items', path: '/lost-items', icon: PackageSearch },
+    { label: 'Community Lost Items', path: '/community-lost-items', icon: Users },
     { label: 'Report Found Item', path: '/found-items/new', icon: PlusCircle },
     { label: 'My Found Items', path: '/found-items', icon: CheckSquare },
     { label: 'Matches', path: '/matches', icon: Sparkles },
