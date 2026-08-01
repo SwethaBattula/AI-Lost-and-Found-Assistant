@@ -18,7 +18,8 @@ The **AI Lost and Found Assistant** is designed to streamline the process of mat
 ```
 AI-Lost-and-Found-Assistant/
 ├── frontend/    # Frontend application (React / Vite / Web interface)
-└── backend/     # Backend application (FastAPI / Python AI services)
+├── backend/     # Backend application (FastAPI / Python AI services)
+└── docs/        # Documentation & API specifications
 ```
 
 ## Getting Started
