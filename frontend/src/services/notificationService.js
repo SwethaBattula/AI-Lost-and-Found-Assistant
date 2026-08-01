@@ -5,4 +5,14 @@ export const notificationService = {
     const response = await api.get('/notifications/');
     return response.data;
   },
+
+  async markAllAsRead() {
+    const response = await api.put('/notifications/mark-read');
+    return response.data;
+  },
+
+  async markAsRead(id) {
+    const response = await api.put(`/notifications/${id}/read`);
+    return response.data;
+  },
 };

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, User, Bell, ShieldCheck } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { notificationService } from '../../services/notificationService';
 
 const ROUTE_TITLES = {
   '/': 'Student Dashboard',
@@ -19,8 +20,23 @@ const ROUTE_TITLES = {
 const TopNav = ({ setMobileOpen }) => {
   const { user } = useAuth();
   const location = useLocation();
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const title = ROUTE_TITLES[location.pathname] || 'AI Lost & Found';
+
+  const fetchUnreadNotifications = async () => {
+    try {
+      const data = await notificationService.getNotifications();
+      const unread = data.filter((n) => !n.is_read).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      console.error('Failed to fetch unread notifications:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadNotifications();
+  }, [location.pathname]);
 
   return (
     <header className="h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
@@ -35,13 +51,18 @@ const TopNav = ({ setMobileOpen }) => {
       </div>
 
       <div className="flex items-center space-x-3">
-        {/* Notifications Icon Button */}
+        {/* Notifications Icon Button with Unread Badge */}
         <Link
           to="/notifications"
-          className="p-2 text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition border border-transparent hover:border-slate-800"
+          className="relative p-2.5 text-slate-400 hover:text-white hover:bg-slate-900 rounded-xl transition border border-transparent hover:border-slate-800 flex items-center justify-center"
           title="Notifications"
         >
           <Bell className="w-5 h-5" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 px-1.5 py-0.5 bg-rose-600 text-white text-[10px] font-black rounded-full shadow-lg shadow-rose-600/40 animate-pulse border border-rose-500/50">
+              {unreadCount}
+            </span>
+          )}
         </Link>
 
         {/* User Profile Summary */}

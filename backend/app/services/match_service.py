@@ -126,6 +126,10 @@ def _notify_owner(db: Session, match_record: Match, lost_item: LostItem, found_i
     notif = Notification(
         user_id=owner.id,
         match_id=match_record.id,
+        title=f"Potential Match Found: {lost_item.item_name}",
+        message=f"Your lost item '{lost_item.item_name}' may have been found near {found_item.location}.",
+        notification_type="potential_match",
+        is_read=False,
         email_sent=sent_success
     )
     db.add(notif)

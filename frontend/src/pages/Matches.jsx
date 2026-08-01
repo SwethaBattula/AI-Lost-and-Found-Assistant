@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, RefreshCw, CheckCircle2, XCircle, Clock, MapPin, ArrowRight, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, RefreshCw, CheckCircle2, XCircle, Clock, MapPin, ArrowRight, Image as ImageIcon, Check } from 'lucide-react';
 import { matchService } from '../services/matchService';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import EmptyState from '../components/common/EmptyState';
 import { useToast } from '../context/ToastContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
+const TIMELINE_STAGES = [
+  { key: 'pending', label: 'Potential Match' },
+  { key: 'under_review', label: 'Pending Verification' },
+  { key: 'ready_for_collection', label: 'Ready For Collection' },
+  { key: 'confirmed', label: 'Collected' },
+];
 
 const Matches = () => {
   const [matches, setMatches] = useState([]);
@@ -62,6 +69,51 @@ const Matches = () => {
   const buildImageUrl = (path) => {
     if (!path) return null;
     return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
+  const getStatusBadgeStyle = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+      case 'under_review':
+        return 'bg-orange-500/20 text-orange-300 border-orange-500/30';
+      case 'ready_for_collection':
+        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'confirmed':
+      case 'collected':
+        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'rejected':
+        return 'bg-red-500/20 text-red-300 border-red-500/30';
+      default:
+        return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    switch (status) {
+      case 'pending':
+        return 'Potential Match';
+      case 'under_review':
+        return 'Pending Verification';
+      case 'ready_for_collection':
+        return 'Ready For Collection';
+      case 'confirmed':
+      case 'collected':
+        return 'Collected';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return status;
+    }
+  };
+
+  const getStageIndex = (status) => {
+    if (status === 'rejected') return -1;
+    if (status === 'pending') return 0;
+    if (status === 'under_review') return 1;
+    if (status === 'ready_for_collection') return 2;
+    if (status === 'confirmed' || status === 'collected') return 3;
+    return 0;
   };
 
   return (
@@ -122,6 +174,8 @@ const Matches = () => {
             const lostImg = buildImageUrl(lost?.image_path);
             const foundImg = buildImageUrl(found?.image_path);
 
+            const activeStageIndex = getStageIndex(match.status);
+
             return (
               <div
                 key={match.id}
@@ -149,18 +203,14 @@ const Matches = () => {
                     </div>
                   </div>
 
-                  {/* Status Controls */}
+                  {/* Status Controls & Badge */}
                   <div className="flex items-center space-x-2">
                     <span
-                      className={`px-3 py-1.5 text-xs font-bold rounded-xl uppercase tracking-wider ${
-                        match.status === 'confirmed'
-                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                          : match.status === 'rejected'
-                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                      }`}
+                      className={`px-3.5 py-1.5 text-xs font-bold rounded-xl uppercase tracking-wider border ${getStatusBadgeStyle(
+                        match.status
+                      )}`}
                     >
-                      {match.status}
+                      {getStatusLabel(match.status)}
                     </span>
 
                     <button
@@ -179,6 +229,47 @@ const Matches = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Match Stage Timeline */}
+                {match.status !== 'rejected' && (
+                  <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-4">
+                    <p className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+                      Match Lifecycle Timeline
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 relative">
+                      {TIMELINE_STAGES.map((stage, idx) => {
+                        const isPastOrCurrent = activeStageIndex >= idx;
+                        const isCurrent = activeStageIndex === idx;
+
+                        return (
+                          <div
+                            key={stage.key}
+                            className={`p-3 rounded-xl border flex items-center space-x-2.5 text-xs transition ${
+                              isCurrent
+                                ? 'bg-blue-600/20 border-blue-500 text-white font-bold ring-2 ring-blue-500/30'
+                                : isPastOrCurrent
+                                ? 'bg-slate-900 border-emerald-500/40 text-emerald-300 font-semibold'
+                                : 'bg-slate-950/40 border-slate-800 text-slate-500'
+                            }`}
+                          >
+                            <div
+                              className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                                isCurrent
+                                  ? 'bg-blue-500 text-white'
+                                  : isPastOrCurrent
+                                  ? 'bg-emerald-500 text-white'
+                                  : 'bg-slate-800 text-slate-500'
+                              }`}
+                            >
+                              {isPastOrCurrent ? <Check className="w-3 h-3" /> : idx + 1}
+                            </div>
+                            <span className="line-clamp-1">{stage.label}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Side-by-Side Comparison */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
