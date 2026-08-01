@@ -16,6 +16,7 @@ import Dashboard from './pages/Dashboard';
 import ReportLostItem from './pages/lost/ReportLostItem';
 import MyLostItems from './pages/lost/MyLostItems';
 import CommunityLostItems from './pages/lost/CommunityLostItems';
+import IFoundSomething from './pages/found/IFoundSomething';
 import ReportFoundItem from './pages/found/ReportFoundItem';
 import MyFoundItems from './pages/found/MyFoundItems';
 import Matches from './pages/Matches';
@@ -71,6 +72,16 @@ function App() {
                   <ProtectedRoute>
                     <MainLayout>
                       <CommunityLostItems />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/i-found-something"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <IFoundSomething />
                     </MainLayout>
                   </ProtectedRoute>
                 }

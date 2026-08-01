@@ -10,6 +10,7 @@ This platform leverages multimodal Artificial Intelligence—combining **semanti
 
 ## 2. Features
 
+- **"I Found Something" Workflow**: Redesigned primary finder navigation (`/i-found-something`) offering finders a decision hub to either search community lost reports first or create a manual found item report.
 - **Personal Student Dashboard**: Displays strictly personal metrics (`My Lost Items`, `My Found Items`, `My Matches`) and personal activity logs (`My Recent Lost Reports`, `My Recent Found Reports`) scoped to the logged-in user.
 - **Community Lost Items**: Public community catalog (`/community-lost-items`) allowing finders to search and filter reported lost items across campus/community without exposing sensitive user contact details.
 - **Enhanced Report Found Workflow**: Optional workflow enabling finders to select an existing community lost report to automatically pre-fill item details before submitting.

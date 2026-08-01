@@ -8,6 +8,7 @@ const ROUTE_TITLES = {
   '/lost-items/new': 'Report Lost Item',
   '/lost-items': 'My Lost Items',
   '/community-lost-items': 'Community Lost Items',
+  '/i-found-something': 'I Found Something',
   '/found-items/new': 'Report Found Item',
   '/found-items': 'My Found Items',
   '/matches': 'AI Matches',
