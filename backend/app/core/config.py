@@ -5,16 +5,20 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "AI Lost and Found Assistant"
     API_V1_STR: str = ""
     
-    # Database
-    DATABASE_URL: str = "sqlite:///./lost_found.db"
+    # Base Directory (backend root)
+    BASE_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+    # Database (Absolute Path)
+    _db_path: str = os.path.join(BASE_DIR, "lost_found.db").replace("\\", "/")
+    DATABASE_URL: str = f"sqlite:///{_db_path}"
     
     # JWT Auth
     JWT_SECRET: str = "super-secret-key-change-this-in-production-1234567890"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
-    # Upload Directories
-    UPLOAD_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads"))
+    # Upload Directories (Absolute Paths)
+    UPLOAD_DIR: str = os.path.join(BASE_DIR, "uploads")
     UPLOAD_LOST_DIR: str = os.path.join(UPLOAD_DIR, "lost")
     UPLOAD_FOUND_DIR: str = os.path.join(UPLOAD_DIR, "found")
     
