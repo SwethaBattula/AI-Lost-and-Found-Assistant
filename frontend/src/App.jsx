@@ -5,13 +5,14 @@ import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import MainLayout from './components/layout/MainLayout';
 
 // Auth Pages
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
-// Core Application Pages
+// Core Student Pages
 import Dashboard from './pages/Dashboard';
 import ReportLostItem from './pages/lost/ReportLostItem';
 import MyLostItems from './pages/lost/MyLostItems';
@@ -24,6 +25,12 @@ import Notifications from './pages/Notifications';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
+// Admin Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminMatches from './pages/admin/AdminMatches';
+import AdminCollections from './pages/admin/AdminCollections';
+import AdminUsers from './pages/admin/AdminUsers';
+
 function App() {
   return (
     <ErrorBoundary>
@@ -35,7 +42,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
-              {/* Protected Application Routes */}
+              {/* Protected Student Routes */}
               <Route
                 path="/"
                 element={
@@ -134,6 +141,48 @@ function App() {
                       <Profile />
                     </MainLayout>
                   </ProtectedRoute>
+                }
+              />
+
+              {/* Protected Admin Routes */}
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <MainLayout>
+                      <AdminDashboard />
+                    </MainLayout>
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/matches"
+                element={
+                  <AdminRoute>
+                    <MainLayout>
+                      <AdminMatches />
+                    </MainLayout>
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/collections"
+                element={
+                  <AdminRoute>
+                    <MainLayout>
+                      <AdminCollections />
+                    </MainLayout>
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminRoute>
+                    <MainLayout>
+                      <AdminUsers />
+                    </MainLayout>
+                  </AdminRoute>
                 }
               />
 

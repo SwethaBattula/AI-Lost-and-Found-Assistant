@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "super-secret-key-change-this-in-production-1234567890"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
+
+    # Admin Seed Credentials
+    ADMIN_EMAIL: str = "admin@ailostfound.com"
+    ADMIN_PASSWORD: str = "AdminPass123!"
     
     # Upload Directories (Absolute Paths)
     UPLOAD_DIR: str = os.path.join(BASE_DIR, "uploads")

@@ -24,9 +24,14 @@ const Login = () => {
     try {
       setLoading(true);
       setError(null);
-      await login(email, password);
+      const resUser = await login(email, password);
       showToast('Welcome back! Login successful.', 'success');
-      navigate('/');
+      
+      if (resUser?.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Login error:', err);
       const msg = err.response?.data?.detail || 'Invalid email or password. Please try again.';
@@ -46,7 +51,7 @@ const Login = () => {
             <Compass className="w-8 h-8" />
           </div>
           <h2 className="text-2xl font-bold text-white tracking-tight">AI Lost & Found</h2>
-          <p className="text-sm text-slate-400">Sign in to report or match lost and found items</p>
+          <p className="text-sm text-slate-400">Sign in to report, match, or manage lost & found items</p>
         </div>
 
         {error && (

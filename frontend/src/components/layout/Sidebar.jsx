@@ -13,12 +13,13 @@ import {
   Compass,
   Users,
   Compass as FoundIcon,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 
 const Sidebar = ({ mobileOpen, setMobileOpen }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -28,7 +29,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     navigate('/login');
   };
 
-  const navItems = [
+  const studentNavItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
     { label: 'Report Lost Item', path: '/lost-items/new', icon: PlusCircle },
     { label: 'My Lost Items', path: '/lost-items', icon: PackageSearch },
@@ -39,6 +40,16 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { label: 'Notifications', path: '/notifications', icon: Bell },
     { label: 'Profile', path: '/profile', icon: User },
   ];
+
+  const adminNavItems = [
+    { label: 'Admin Dashboard', path: '/admin', icon: LayoutDashboard },
+    { label: 'Pending Matches', path: '/admin/matches', icon: Sparkles },
+    { label: 'Collections', path: '/admin/collections', icon: CheckSquare },
+    { label: 'Users (Read Only)', path: '/admin/users', icon: Users },
+    { label: 'Profile', path: '/profile', icon: User },
+  ];
+
+  const navItems = user?.role === 'admin' ? adminNavItems : studentNavItems;
 
   return (
     <>
@@ -60,11 +71,17 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
           {/* Header Brand */}
           <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-500/20">
-                <Compass className="w-5 h-5" />
+              <div
+                className={`p-2 rounded-xl text-white shadow-lg ${
+                  user?.role === 'admin'
+                    ? 'bg-amber-600 shadow-amber-500/20'
+                    : 'bg-blue-600 shadow-blue-500/20'
+                }`}
+              >
+                {user?.role === 'admin' ? <ShieldAlert className="w-5 h-5" /> : <Compass className="w-5 h-5" />}
               </div>
               <span className="font-bold text-white text-base tracking-tight leading-tight">
-                AI Lost & Found
+                {user?.role === 'admin' ? 'Admin Portal' : 'AI Lost & Found'}
               </span>
             </div>
             <button
@@ -83,12 +100,14 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  end={item.path === '/'}
+                  end={item.path === '/' || item.path === '/admin'}
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
                     `flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                        ? user?.role === 'admin'
+                          ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/25'
+                          : 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                     }`
                   }
