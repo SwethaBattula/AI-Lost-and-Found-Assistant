@@ -63,3 +63,5 @@ logs/
 *.log
 tmp/
 scratch/
+*.db
+
