@@ -16,6 +16,11 @@ export const adminService = {
     return response.data;
   },
 
+  async markCollected(matchId) {
+    const response = await api.put(`/admin/matches/${matchId}/collect`);
+    return response.data;
+  },
+
   async markHandover(matchId) {
     const response = await api.put(`/admin/matches/${matchId}/handover`);
     return response.data;

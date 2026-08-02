@@ -27,7 +27,7 @@ def get_admin_dashboard_stats(
     new_found_reports = db.query(FoundItem).filter(FoundItem.status == "found_reported").count()
     items_received = db.query(FoundItem).filter(FoundItem.status == "item_received").count()
     waiting_for_pickup = db.query(Match).filter(Match.status.in_(["waiting_for_pickup", "ready_for_collection"])).count()
-    closed_cases = db.query(Match).filter(Match.status.in_(["confirmed", "handed_over"])).count()
+    collected_cases = db.query(Match).filter(Match.status.in_(["collected", "confirmed", "handed_over", "case_closed"])).count()
     total_registered_users = db.query(User).count()
 
     return {
@@ -36,7 +36,7 @@ def get_admin_dashboard_stats(
         "new_found_reports": new_found_reports,
         "items_received": items_received,
         "waiting_for_pickup": waiting_for_pickup,
-        "closed_cases": closed_cases,
+        "closed_cases": collected_cases,
         "total_registered_users": total_registered_users
     }
 
@@ -82,20 +82,21 @@ def approve_match(
     db.refresh(match)
     return match
 
+@router.put("/matches/{match_id}/collect", response_model=MatchResponse)
 @router.put("/matches/{match_id}/handover", response_model=MatchResponse)
-def mark_match_as_handed_over(
+def mark_match_as_collected(
     match_id: int,
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user)
 ):
     """
-    Mark item as physically handed over at Lost & Found Office (Case Closed).
+    Mark item as physically Collected at Lost & Found Office (Case Closed).
     """
     match = db.query(Match).filter(Match.id == match_id).first()
     if not match:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found.")
 
-    match.status = "handed_over"
+    match.status = "collected"
 
     lost_item = match.lost_item
     if lost_item and lost_item.owner_id:
@@ -103,7 +104,7 @@ def mark_match_as_handed_over(
             user_id=lost_item.owner_id,
             match_id=match.id,
             title="Collection Completed",
-            message="Collection completed at Lost & Found Office. Thank you for using AI Lost & Found.",
+            message="Item collected at Lost & Found Office. Case closed.",
             notification_type="collection_completed",
             is_read=False,
             email_sent=False

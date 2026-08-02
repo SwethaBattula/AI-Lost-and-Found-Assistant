@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, CheckCircle2, XCircle, MapPin, User, Image as ImageIcon, Eye, X, Check, Building2, ShieldAlert, Package } from 'lucide-react';
+import { Sparkles, CheckCircle2, XCircle, MapPin, User, Image as ImageIcon, Eye, X, Check, Building2, PackageCheck } from 'lucide-react';
 import { adminService } from '../../services/adminService';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import EmptyState from '../../components/common/EmptyState';
+import Timeline from '../../components/common/Timeline';
 import { useToast } from '../../context/ToastContext';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
-
-const TIMELINE_STAGES = [
-  { key: 'lost_reported', label: 'Lost Reported' },
-  { key: 'item_received', label: 'Item Received at Office' },
-  { key: 'potential_match', label: 'Potential Match Found' },
-  { key: 'waiting_for_pickup', label: 'Waiting for Pickup' },
-  { key: 'handed_over', label: 'Handed Over' },
-];
 
 const AdminMatches = () => {
   const [matches, setMatches] = useState([]);
@@ -38,15 +31,15 @@ const AdminMatches = () => {
     fetchAdminMatches();
   }, []);
 
-  const handleHandover = async (matchId) => {
+  const handleCollected = async (matchId) => {
     try {
-      await adminService.markHandover(matchId);
-      showToast('Item marked as Handed Over! Case Closed and student owner notified.', 'success');
+      await adminService.markCollected(matchId);
+      showToast('Item marked as Collected! Case Closed and student owner notified.', 'success');
       fetchAdminMatches();
       if (selectedMatch?.id === matchId) setSelectedMatch(null);
     } catch (err) {
-      console.error('Handover error:', err);
-      showToast('Failed to complete item handover.', 'error');
+      console.error('Collected error:', err);
+      showToast('Failed to complete item collection.', 'error');
     }
   };
 
@@ -75,9 +68,11 @@ const AdminMatches = () => {
       case 'waiting_for_pickup':
       case 'ready_for_collection':
         return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      case 'collected':
       case 'confirmed':
       case 'handed_over':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+      case 'case_closed':
+        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
       case 'rejected':
         return 'bg-red-500/20 text-red-300 border-red-500/30';
       default:
@@ -93,9 +88,11 @@ const AdminMatches = () => {
       case 'waiting_for_pickup':
       case 'ready_for_collection':
         return 'Waiting for Pickup';
+      case 'collected':
       case 'confirmed':
       case 'handed_over':
-        return 'Handed Over (Case Closed)';
+      case 'case_closed':
+        return 'Collected (Case Closed)';
       case 'rejected':
         return 'Rejected';
       default:
@@ -103,22 +100,12 @@ const AdminMatches = () => {
     }
   };
 
-  const getStageIndex = (status) => {
-    if (status === 'rejected') return -1;
-    if (status === 'lost_reported') return 0;
-    if (status === 'item_received') return 1;
-    if (status === 'pending' || status === 'potential_match') return 2;
-    if (status === 'waiting_for_pickup' || status === 'ready_for_collection') return 3;
-    if (status === 'confirmed' || status === 'handed_over') return 4;
-    return 2;
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-2xl font-bold text-white tracking-tight">Active Cases & Match Supervision</h2>
-          <p className="text-slate-400 text-sm">Supervise case lifecycles, verify physical handovers, and handle exception overrides</p>
+          <p className="text-slate-400 text-sm">Supervise case lifecycles, verify physical collections, and handle exception overrides</p>
         </div>
       </div>
 
@@ -138,6 +125,11 @@ const AdminMatches = () => {
             const lostImg = buildImageUrl(lost?.image_path);
             const foundImg = buildImageUrl(found?.image_path);
 
+            const overallScore = Math.round(match.confidence_score * 100);
+            const textScore = Math.round(match.text_similarity * 100);
+            const imageScore = Math.round(match.image_similarity * 100);
+            const descScore = Math.round(((match.text_similarity + match.confidence_score) / 2) * 100);
+
             return (
               <div
                 key={match.id}
@@ -152,12 +144,13 @@ const AdminMatches = () => {
                     <div>
                       <div className="flex items-center space-x-3">
                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          Case #{match.id} • AI Score: <strong className="text-amber-400 text-base">{Math.round(match.confidence_score * 100)}%</strong>
+                          Case #{match.id} • Overall Match Confidence: <strong className="text-amber-400 text-base">{overallScore}%</strong>
                         </span>
                       </div>
-                      <div className="flex items-center space-x-4 text-xs text-slate-400 mt-0.5">
-                        <span>Text Sim: <strong className="text-slate-200">{Math.round(match.text_similarity * 100)}%</strong></span>
-                        <span>Image Sim: <strong className="text-slate-200">{Math.round(match.image_similarity * 100)}%</strong></span>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1">
+                        <span>Text Similarity: <strong className="text-slate-200">{textScore}%</strong></span>
+                        <span>Image Similarity: <strong className="text-slate-200">{imageScore}%</strong></span>
+                        <span>Description Match: <strong className="text-slate-200">{descScore}%</strong></span>
                       </div>
                     </div>
                   </div>
@@ -180,12 +173,12 @@ const AdminMatches = () => {
                     </button>
 
                     <button
-                      onClick={() => handleHandover(match.id)}
-                      disabled={match.status === 'confirmed' || match.status === 'handed_over'}
+                      onClick={() => handleCollected(match.id)}
+                      disabled={match.status === 'collected' || match.status === 'confirmed' || match.status === 'case_closed'}
                       className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-600/20 flex items-center space-x-1.5 disabled:opacity-40"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Mark Handed Over</span>
+                      <PackageCheck className="w-4 h-4" />
+                      <span>Mark as Collected</span>
                     </button>
 
                     <button
@@ -268,58 +261,47 @@ const AdminMatches = () => {
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-3xl w-full space-y-6 max-h-[90vh] overflow-y-auto shadow-2xl">
             <div className="flex justify-between items-center border-b border-slate-800 pb-4">
-              <h3 className="text-xl font-bold text-white">Case #{selectedMatch.id} Breakdown</h3>
+              <h3 className="text-xl font-bold text-white">Case #{selectedMatch.id} Breakdown & History</h3>
               <button onClick={() => setSelectedMatch(null)} className="text-slate-400 hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Timeline */}
-            <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Physical & Match Lifecycle Stage</span>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
-                {TIMELINE_STAGES.map((st, idx) => {
-                  const activeIdx = getStageIndex(selectedMatch.status);
-                  const isCurrent = activeIdx === idx;
-                  const isPast = activeIdx >= idx;
+            {/* Reusable Timeline Component */}
+            <Timeline
+              currentStatus={selectedMatch.status}
+              timestamps={{
+                lost_reported: new Date(selectedMatch.lost_item?.created_at).toLocaleString(),
+                found_reported: new Date(selectedMatch.found_item?.created_at).toLocaleString(),
+                item_received: new Date(selectedMatch.found_item?.created_at).toLocaleString(),
+                potential_match: new Date(selectedMatch.created_at).toLocaleString(),
+                owner_notified: new Date(selectedMatch.created_at).toLocaleString(),
+                waiting_for_pickup: new Date(selectedMatch.created_at).toLocaleString(),
+                collected: selectedMatch.status === 'collected' ? new Date().toLocaleString() : null,
+                case_closed: selectedMatch.status === 'collected' ? new Date().toLocaleString() : null,
+              }}
+            />
 
-                  return (
-                    <div
-                      key={st.key}
-                      className={`p-2 rounded-xl border text-[11px] flex items-center space-x-1.5 ${
-                        isCurrent
-                          ? 'bg-blue-600/20 border-blue-500 text-white font-bold'
-                          : isPast
-                          ? 'bg-slate-900 border-emerald-500/40 text-emerald-300'
-                          : 'bg-slate-900 border-slate-800 text-slate-500'
-                      }`}
-                    >
-                      <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] shrink-0 ${isPast ? 'bg-emerald-500 text-white' : 'bg-slate-800'}`}>
-                        {isPast ? <Check className="w-2.5 h-2.5" /> : idx + 1}
-                      </div>
-                      <span className="truncate">{st.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Lost vs Found Deep Breakdown */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-slate-300">
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-                <h4 className="font-bold text-rose-400 uppercase tracking-wider">Lost Item Report</h4>
-                <p><strong>Name:</strong> {selectedMatch.lost_item?.item_name}</p>
-                <p><strong>Owner:</strong> {selectedMatch.lost_item?.owner?.full_name} ({selectedMatch.lost_item?.owner?.email})</p>
-                <p><strong>Location:</strong> {selectedMatch.lost_item?.location}</p>
-                <p><strong>Description:</strong> {selectedMatch.lost_item?.description}</p>
-              </div>
-
-              <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-2">
-                <h4 className="font-bold text-emerald-400 uppercase tracking-wider">Found Item Report (Office Audit)</h4>
-                <p><strong>Name:</strong> {selectedMatch.found_item?.item_name}</p>
-                <p><strong>Finder:</strong> {selectedMatch.found_item?.finder?.full_name} ({selectedMatch.found_item?.finder?.email})</p>
-                <p><strong>Location:</strong> {selectedMatch.found_item?.location}</p>
-                <p><strong>Description:</strong> {selectedMatch.found_item?.description}</p>
+            {/* AI Confidence Breakdown */}
+            <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+              <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider">AI Confidence Breakdown</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                  <p className="text-[11px] text-slate-400">Overall Match</p>
+                  <p className="text-lg font-black text-amber-400">{Math.round(selectedMatch.confidence_score * 100)}%</p>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                  <p className="text-[11px] text-slate-400">Text Similarity</p>
+                  <p className="text-lg font-bold text-white">{Math.round(selectedMatch.text_similarity * 100)}%</p>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                  <p className="text-[11px] text-slate-400">Image Similarity</p>
+                  <p className="text-lg font-bold text-white">{Math.round(selectedMatch.image_similarity * 100)}%</p>
+                </div>
+                <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
+                  <p className="text-[11px] text-slate-400">Description Match</p>
+                  <p className="text-lg font-bold text-white">{Math.round(((selectedMatch.text_similarity + selectedMatch.confidence_score) / 2) * 100)}%</p>
+                </div>
               </div>
             </div>
 
@@ -333,11 +315,11 @@ const AdminMatches = () => {
                 Reject Invalid Match
               </button>
               <button
-                onClick={() => handleHandover(selectedMatch.id)}
-                disabled={selectedMatch.status === 'confirmed' || selectedMatch.status === 'handed_over'}
+                onClick={() => handleCollected(selectedMatch.id)}
+                disabled={selectedMatch.status === 'collected' || selectedMatch.status === 'confirmed' || selectedMatch.status === 'case_closed'}
                 className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition shadow-lg shadow-emerald-600/20"
               >
-                Mark as Handed Over (Close Case)
+                Mark as Collected (Close Case)
               </button>
             </div>
           </div>
