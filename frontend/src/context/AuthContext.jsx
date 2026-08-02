@@ -4,21 +4,29 @@ import { authService } from '../services/authService';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(localStorage.getItem('jwt_token') || null);
+  // Use sessionStorage to ensure session expires when browser/server restarts
+  const [token, setToken] = useState(() => {
+    // Clear legacy persistent localStorage items to enforce fresh login requirements
+    localStorage.removeItem('jwt_token');
+    localStorage.removeItem('user_info');
+    return sessionStorage.getItem('jwt_token') || null;
+  });
+
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user_info');
+    const saved = sessionStorage.getItem('user_info');
     return saved ? JSON.parse(saved) : null;
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const storedToken = localStorage.getItem('jwt_token');
+      const storedToken = sessionStorage.getItem('jwt_token');
       if (storedToken) {
         try {
           const userData = await authService.getCurrentUser();
           setUser(userData);
-          localStorage.setItem('user_info', JSON.stringify(userData));
+          sessionStorage.setItem('user_info', JSON.stringify(userData));
         } catch (err) {
           console.error('Failed to fetch user profile on init:', err);
           logout();
@@ -38,20 +46,21 @@ export const AuthProvider = ({ children }) => {
     setToken(accessToken);
     setUser(userData);
 
-    localStorage.setItem('jwt_token', accessToken);
-    localStorage.setItem('user_info', JSON.stringify(userData));
+    sessionStorage.setItem('jwt_token', accessToken);
+    sessionStorage.setItem('user_info', JSON.stringify(userData));
     return userData;
   };
 
   const register = async (fullName, email, password) => {
-    const userData = await authService.register(fullName, email, password);
-    // After registration, log the user in automatically
+    await authService.register(fullName, email, password);
     return await login(email, password);
   };
 
   const logout = () => {
     setToken(null);
     setUser(null);
+    sessionStorage.removeItem('jwt_token');
+    sessionStorage.removeItem('user_info');
     localStorage.removeItem('jwt_token');
     localStorage.removeItem('user_info');
   };

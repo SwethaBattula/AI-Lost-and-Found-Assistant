@@ -12,7 +12,6 @@ import {
   X,
   Compass,
   Users,
-  Compass as FoundIcon,
   Building2,
   Package,
 } from 'lucide-react';
@@ -35,7 +34,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { label: 'Report Lost Item', path: '/lost-items/new', icon: PlusCircle },
     { label: 'My Lost Items', path: '/lost-items', icon: PackageSearch },
     { label: 'Community Lost Items', path: '/community-lost-items', icon: Users },
-    { label: 'I Found Something', path: '/i-found-something', icon: FoundIcon },
+    { label: 'I Found Something', path: '/i-found-something', icon: Compass },
     { label: 'My Found Items', path: '/found-items', icon: CheckSquare },
     { label: 'Matches', path: '/matches', icon: Sparkles },
     { label: 'Notifications', path: '/notifications', icon: Bell },
@@ -64,7 +63,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed top-0 left-0 bottom-0 z-40 w-64 bg-slate-950 border-r border-slate-800/80 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -76,7 +75,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                 className={`p-2 rounded-xl text-white shadow-lg ${
                   user?.role === 'admin'
                     ? 'bg-amber-600 shadow-amber-500/20'
-                    : 'bg-blue-600 shadow-blue-500/20'
+                    : 'bg-indigo-600 shadow-indigo-500/25'
                 }`}
               >
                 {user?.role === 'admin' ? <Building2 className="w-5 h-5" /> : <Compass className="w-5 h-5" />}
@@ -108,7 +107,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                       isActive
                         ? user?.role === 'admin'
                           ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/25'
-                          : 'bg-blue-600 text-white shadow-lg shadow-blue-600/25'
+                          : 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/25'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                     }`
                   }
@@ -125,7 +124,7 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
         <div className="p-4 border-t border-slate-800/80">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition border border-red-500/20"
+            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition border border-rose-500/20"
           >
             <LogOut className="w-4 h-4 shrink-0" />
             <span>Logout</span>

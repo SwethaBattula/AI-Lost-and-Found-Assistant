@@ -45,7 +45,7 @@ const TopNav = ({ setMobileOpen }) => {
   }, [location.pathname, user]);
 
   return (
-    <header className="h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
+    <header className="h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-30 px-4 sm:px-8 flex items-center justify-between">
       <div className="flex items-center space-x-4">
         <button
           onClick={() => setMobileOpen(true)}
@@ -82,7 +82,7 @@ const TopNav = ({ setMobileOpen }) => {
             className={`w-8 h-8 rounded-lg font-bold text-sm flex items-center justify-center border ${
               user?.role === 'admin'
                 ? 'bg-amber-600/20 text-amber-400 border-amber-500/30'
-                : 'bg-blue-600/20 text-blue-400 border-blue-500/30'
+                : 'bg-indigo-600/20 text-indigo-400 border-indigo-500/30'
             }`}
           >
             {user?.full_name?.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
@@ -96,7 +96,7 @@ const TopNav = ({ setMobileOpen }) => {
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" /> Student Account
+                  <ShieldCheck className="w-3 h-3 text-indigo-400" /> Student Account
                 </>
               )}
             </p>
