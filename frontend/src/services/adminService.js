@@ -16,18 +16,18 @@ export const adminService = {
     return response.data;
   },
 
+  async markHandover(matchId) {
+    const response = await api.put(`/admin/matches/${matchId}/handover`);
+    return response.data;
+  },
+
   async rejectMatch(matchId) {
     const response = await api.put(`/admin/matches/${matchId}/reject`);
     return response.data;
   },
 
-  async getCollections() {
-    const response = await api.get('/admin/collections');
-    return response.data;
-  },
-
-  async collectMatch(matchId) {
-    const response = await api.put(`/admin/matches/${matchId}/collect`);
+  async getInventory() {
+    const response = await api.get('/admin/inventory');
     return response.data;
   },
 

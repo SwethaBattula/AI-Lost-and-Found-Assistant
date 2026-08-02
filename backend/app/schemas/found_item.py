@@ -18,11 +18,13 @@ class FoundItemUpdate(BaseModel):
     description: str | None = None
     date_found: datetime | None = None
     location: str | None = None
+    status: str | None = None
 
 class FoundItemResponse(FoundItemBase):
     id: int
     finder_id: int
     image_path: str | None = None
+    status: str = "found_reported"
     created_at: datetime
     finder: UserResponse | None = None
 

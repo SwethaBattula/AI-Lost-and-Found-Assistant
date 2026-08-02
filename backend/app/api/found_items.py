@@ -40,7 +40,8 @@ async def create_found_item(
         description=description,
         date_found=date_found,
         location=location,
-        image_path=image_path
+        image_path=image_path,
+        status="found_reported"
     )
     db.add(found_item)
     db.commit()
@@ -75,6 +76,24 @@ def get_found_item(item_id: int, db: Session = Depends(get_db)):
         raise EntityNotFoundException("FoundItem", item_id)
     return item
 
+@router.put("/{item_id}/mark-received", response_model=FoundItemResponse)
+def mark_found_item_received(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Mark found item as physically received at the Lost & Found Office ('item_received').
+    """
+    item = db.query(FoundItem).filter(FoundItem.id == item_id).first()
+    if not item:
+        raise EntityNotFoundException("FoundItem", item_id)
+
+    item.status = "item_received"
+    db.commit()
+    db.refresh(item)
+    return item
+
 @router.put("/{item_id}", response_model=FoundItemResponse)
 def update_found_item(
     item_id: int,
@@ -83,12 +102,12 @@ def update_found_item(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Update found item details. (Finder only)
+    Update found item details. (Finder or Admin)
     """
     item = db.query(FoundItem).filter(FoundItem.id == item_id).first()
     if not item:
         raise EntityNotFoundException("FoundItem", item_id)
-    if item.finder_id != current_user.id:
+    if item.finder_id != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to edit this item.")
 
     update_data = item_in.model_dump(exclude_unset=True)
@@ -106,12 +125,12 @@ def delete_found_item(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Delete found item. (Finder only)
+    Delete found item. (Finder or Admin)
     """
     item = db.query(FoundItem).filter(FoundItem.id == item_id).first()
     if not item:
         raise EntityNotFoundException("FoundItem", item_id)
-    if item.finder_id != current_user.id:
+    if item.finder_id != current_user.id and current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this item.")
 
     db.delete(item)

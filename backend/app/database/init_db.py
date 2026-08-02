@@ -23,28 +23,36 @@ def init_db():
         except Exception:
             pass
 
-        # 2. 'title' column on notifications table
+        # 2. 'status' column on found_items table
+        try:
+            conn.execute(text("ALTER TABLE found_items ADD COLUMN status VARCHAR(50) DEFAULT 'found_reported'"))
+            conn.commit()
+            logger.info("Added missing 'status' column to found_items table.")
+        except Exception:
+            pass
+
+        # 3. 'title' column on notifications table
         try:
             conn.execute(text("ALTER TABLE notifications ADD COLUMN title VARCHAR(255)"))
             conn.commit()
         except Exception:
             pass
 
-        # 3. 'message' column on notifications table
+        # 4. 'message' column on notifications table
         try:
             conn.execute(text("ALTER TABLE notifications ADD COLUMN message TEXT"))
             conn.commit()
         except Exception:
             pass
 
-        # 4. 'notification_type' column on notifications table
+        # 5. 'notification_type' column on notifications table
         try:
             conn.execute(text("ALTER TABLE notifications ADD COLUMN notification_type VARCHAR(50) DEFAULT 'potential_match'"))
             conn.commit()
         except Exception:
             pass
 
-        # 5. 'is_read' column on notifications table
+        # 6. 'is_read' column on notifications table
         try:
             conn.execute(text("ALTER TABLE notifications ADD COLUMN is_read BOOLEAN DEFAULT 0"))
             conn.commit()

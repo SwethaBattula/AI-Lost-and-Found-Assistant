@@ -14,6 +14,7 @@ class FoundItem(Base):
     date_found = Column(DateTime, nullable=False)
     location = Column(String(255), nullable=False)
     image_path = Column(String(500), nullable=True)
+    status = Column(String(50), nullable=False, default="found_reported")  # found_reported, item_received
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     finder = relationship("User", back_populates="found_items")

@@ -28,7 +28,7 @@ import NotFound from './pages/NotFound';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminMatches from './pages/admin/AdminMatches';
-import AdminCollections from './pages/admin/AdminCollections';
+import AdminInventory from './pages/admin/AdminInventory';
 import AdminUsers from './pages/admin/AdminUsers';
 
 function App() {
@@ -144,7 +144,7 @@ function App() {
                 }
               />
 
-              {/* Protected Admin Routes */}
+              {/* Protected Admin Routes (Lost & Found Office) */}
               <Route
                 path="/admin"
                 element={
@@ -166,11 +166,21 @@ function App() {
                 }
               />
               <Route
+                path="/admin/inventory"
+                element={
+                  <AdminRoute>
+                    <MainLayout>
+                      <AdminInventory />
+                    </MainLayout>
+                  </AdminRoute>
+                }
+              />
+              <Route
                 path="/admin/collections"
                 element={
                   <AdminRoute>
                     <MainLayout>
-                      <AdminCollections />
+                      <AdminInventory />
                     </MainLayout>
                   </AdminRoute>
                 }

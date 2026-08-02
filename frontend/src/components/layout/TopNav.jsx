@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, User, Bell, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Menu, User, Bell, ShieldCheck, Building2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { notificationService } from '../../services/notificationService';
@@ -15,10 +15,10 @@ const ROUTE_TITLES = {
   '/matches': 'AI Matches',
   '/notifications': 'Notification Alerts',
   '/profile': 'User Profile',
-  '/admin': 'Administrator Dashboard',
-  '/admin/matches': 'Match Review & Verification',
-  '/admin/collections': 'Collection Management',
-  '/admin/users': 'User Management',
+  '/admin': 'Lost & Found Office Dashboard',
+  '/admin/matches': 'Active Cases & Match Supervision',
+  '/admin/inventory': 'Items Currently in Office',
+  '/admin/users': 'Registered User Directory',
 };
 
 const TopNav = ({ setMobileOpen }) => {
@@ -92,7 +92,7 @@ const TopNav = ({ setMobileOpen }) => {
             <p className="text-[10px] text-slate-400 flex items-center gap-1">
               {user?.role === 'admin' ? (
                 <>
-                  <ShieldAlert className="w-3 h-3 text-amber-400" /> Administrator Account
+                  <Building2 className="w-3 h-3 text-amber-400" /> Lost & Found Office
                 </>
               ) : (
                 <>

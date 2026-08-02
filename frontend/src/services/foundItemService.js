@@ -23,6 +23,11 @@ export const foundItemService = {
     return response.data;
   },
 
+  async markReceived(id) {
+    const response = await api.put(`/found-items/${id}/mark-received`);
+    return response.data;
+  },
+
   async updateFoundItem(id, data) {
     const response = await api.put(`/found-items/${id}`, data);
     return response.data;

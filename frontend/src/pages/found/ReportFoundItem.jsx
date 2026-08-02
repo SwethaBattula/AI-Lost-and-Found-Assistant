@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckSquare, Search, Sparkles, CheckCircle2, ArrowRight, X, AlertCircle } from 'lucide-react';
+import { CheckSquare, Search, Sparkles, CheckCircle2, ArrowRight, X, Building2, Package } from 'lucide-react';
 import ItemForm from '../../components/common/ItemForm';
 import { foundItemService } from '../../services/foundItemService';
 import { lostItemService } from '../../services/lostItemService';
@@ -13,12 +13,12 @@ const ReportFoundItem = () => {
   const [lookupQuery, setLookupQuery] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
   const [selectedLostItem, setSelectedLostItem] = useState(null);
+  const [createdFoundItem, setCreatedFoundItem] = useState(null);
 
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if a lost item was passed via navigation state (e.g. from CommunityLostItems page)
   useEffect(() => {
     if (location.state?.prefilledLostItem) {
       setSelectedLostItem(location.state.prefilledLostItem);
@@ -29,7 +29,6 @@ const ReportFoundItem = () => {
     }
   }, [location.state]);
 
-  // Fetch community lost items when lookup modal is opened
   const handleOpenLookup = async () => {
     setShowCommunityLookup(true);
     if (communityItems.length === 0) {
@@ -58,13 +57,28 @@ const ReportFoundItem = () => {
   const handleSubmit = async (formData) => {
     try {
       setLoading(true);
-      await foundItemService.createFoundItem(formData);
-      showToast('Found item reported successfully! AI matching sweep triggered.', 'success');
-      navigate('/found-items');
+      const res = await foundItemService.createFoundItem(formData);
+      setCreatedFoundItem(res);
+      showToast('Found report created! Please hand the item to the Lost & Found Office.', 'success');
     } catch (err) {
       console.error('Failed to report found item:', err);
       const msg = err.response?.data?.detail || 'Failed to submit report. Please try again.';
       showToast(msg, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmOfficeSubmission = async () => {
+    if (!createdFoundItem) return;
+    try {
+      setLoading(true);
+      await foundItemService.markReceived(createdFoundItem.id);
+      showToast('Thank you! Status updated to Item Received at Office.', 'success');
+      navigate('/found-items');
+    } catch (err) {
+      console.error('Failed to mark item received:', err);
+      showToast('Failed to update office submission status.', 'error');
     } finally {
       setLoading(false);
     }
@@ -88,6 +102,43 @@ const ReportFoundItem = () => {
         date_found: new Date().toISOString(),
       }
     : null;
+
+  if (createdFoundItem) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 pt-6">
+        <div className="bg-slate-900 border-2 border-emerald-500/50 rounded-3xl p-8 space-y-6 text-center shadow-2xl animate-in fade-in duration-300">
+          <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-3xl flex items-center justify-center mx-auto shadow-xl">
+            <Building2 className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-white">Thank you!</h2>
+            <p className="text-emerald-300 font-semibold text-base">
+              Please hand the item to the Lost & Found Office.
+            </p>
+            <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed">
+              Once turned in at the Lost & Found Office, our AI system automatically matches it with reported lost belongings and alerts the owner for pickup.
+            </p>
+          </div>
+
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-left space-y-1 text-xs text-slate-300">
+            <p><strong>Item Name:</strong> {createdFoundItem.item_name}</p>
+            <p><strong>Found Location:</strong> {createdFoundItem.location}</p>
+            <p><strong>Category:</strong> {createdFoundItem.category}</p>
+          </div>
+
+          <button
+            onClick={handleConfirmOfficeSubmission}
+            disabled={loading}
+            className="w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-2xl transition shadow-xl shadow-emerald-600/25 flex items-center justify-center space-x-2 text-sm disabled:opacity-50"
+          >
+            <Package className="w-5 h-5" />
+            <span>I have submitted this item to the Lost & Found Office</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">

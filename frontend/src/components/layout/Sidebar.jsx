@@ -13,7 +13,8 @@ import {
   Compass,
   Users,
   Compass as FoundIcon,
-  ShieldAlert,
+  Building2,
+  Package,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -42,10 +43,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   ];
 
   const adminNavItems = [
-    { label: 'Admin Dashboard', path: '/admin', icon: LayoutDashboard },
-    { label: 'Pending Matches', path: '/admin/matches', icon: Sparkles },
-    { label: 'Collections', path: '/admin/collections', icon: CheckSquare },
-    { label: 'Users (Read Only)', path: '/admin/users', icon: Users },
+    { label: 'Office Dashboard', path: '/admin', icon: LayoutDashboard },
+    { label: 'Active Cases & Matches', path: '/admin/matches', icon: Sparkles },
+    { label: 'Office Inventory', path: '/admin/inventory', icon: Package },
+    { label: 'Registered Users', path: '/admin/users', icon: Users },
     { label: 'Profile', path: '/profile', icon: User },
   ];
 
@@ -78,10 +79,10 @@ const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                     : 'bg-blue-600 shadow-blue-500/20'
                 }`}
               >
-                {user?.role === 'admin' ? <ShieldAlert className="w-5 h-5" /> : <Compass className="w-5 h-5" />}
+                {user?.role === 'admin' ? <Building2 className="w-5 h-5" /> : <Compass className="w-5 h-5" />}
               </div>
               <span className="font-bold text-white text-base tracking-tight leading-tight">
-                {user?.role === 'admin' ? 'Admin Portal' : 'AI Lost & Found'}
+                {user?.role === 'admin' ? 'Lost & Found Office' : 'AI Lost & Found'}
               </span>
             </div>
             <button

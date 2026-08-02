@@ -8,10 +8,11 @@ from app.models.found_item import FoundItem
 from app.models.match import Match
 from app.models.notification import Notification
 from app.schemas.match import MatchResponse
+from app.schemas.found_item import FoundItemResponse
 from app.schemas.user import UserResponse
 from app.auth.dependencies import get_current_admin_user
 
-router = APIRouter(prefix="/admin", tags=["Admin Workflow"])
+router = APIRouter(prefix="/admin", tags=["Lost & Found Office Supervision"])
 
 @router.get("/stats")
 def get_admin_dashboard_stats(
@@ -19,24 +20,23 @@ def get_admin_dashboard_stats(
     current_admin: User = Depends(get_current_admin_user)
 ) -> Dict[str, Any]:
     """
-    Retrieve global platform statistics for administrator dashboard.
+    Retrieve operational metrics for Lost & Found Office Supervision Dashboard.
     """
-    pending_matches = db.query(Match).filter(Match.status.in_(["pending", "under_review"])).count()
-    ready_for_collection = db.query(Match).filter(Match.status == "ready_for_collection").count()
-    collected_cases = db.query(Match).filter(Match.status.in_(["confirmed", "collected"])).count()
-    rejected_matches = db.query(Match).filter(Match.status == "rejected").count()
-
-    total_lost_items = db.query(LostItem).count()
-    total_found_items = db.query(FoundItem).count()
+    active_cases = db.query(Match).filter(Match.status.in_(["pending", "under_review", "waiting_for_pickup", "ready_for_collection"])).count()
+    new_lost_reports = db.query(LostItem).count()
+    new_found_reports = db.query(FoundItem).filter(FoundItem.status == "found_reported").count()
+    items_received = db.query(FoundItem).filter(FoundItem.status == "item_received").count()
+    waiting_for_pickup = db.query(Match).filter(Match.status.in_(["waiting_for_pickup", "ready_for_collection"])).count()
+    closed_cases = db.query(Match).filter(Match.status.in_(["confirmed", "handed_over"])).count()
     total_registered_users = db.query(User).count()
 
     return {
-        "pending_matches": pending_matches,
-        "ready_for_collection": ready_for_collection,
-        "collected_cases": collected_cases,
-        "rejected_matches": rejected_matches,
-        "total_lost_items": total_lost_items,
-        "total_found_items": total_found_items,
+        "active_cases": active_cases,
+        "new_lost_reports": new_lost_reports,
+        "new_found_reports": new_found_reports,
+        "items_received": items_received,
+        "waiting_for_pickup": waiting_for_pickup,
+        "closed_cases": closed_cases,
         "total_registered_users": total_registered_users
     }
 
@@ -46,7 +46,7 @@ def get_all_matches_for_admin(
     current_admin: User = Depends(get_current_admin_user)
 ):
     """
-    List all system matches for administrator review.
+    List all system cases and matches for operational oversight.
     """
     return db.query(Match).order_by(Match.created_at.desc()).all()
 
@@ -57,16 +57,14 @@ def approve_match(
     current_admin: User = Depends(get_current_admin_user)
 ):
     """
-    Approve match and set status to 'ready_for_collection'.
-    Automatically notifies the lost item owner.
+    Update match status to 'waiting_for_pickup' (Ready for Student Pickup at Office).
     """
     match = db.query(Match).filter(Match.id == match_id).first()
     if not match:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found.")
 
-    match.status = "ready_for_collection"
+    match.status = "waiting_for_pickup"
 
-    # Create notification for owner
     lost_item = match.lost_item
     if lost_item and lost_item.owner_id:
         notif = Notification(
@@ -84,6 +82,38 @@ def approve_match(
     db.refresh(match)
     return match
 
+@router.put("/matches/{match_id}/handover", response_model=MatchResponse)
+def mark_match_as_handed_over(
+    match_id: int,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin_user)
+):
+    """
+    Mark item as physically handed over at Lost & Found Office (Case Closed).
+    """
+    match = db.query(Match).filter(Match.id == match_id).first()
+    if not match:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found.")
+
+    match.status = "handed_over"
+
+    lost_item = match.lost_item
+    if lost_item and lost_item.owner_id:
+        notif = Notification(
+            user_id=lost_item.owner_id,
+            match_id=match.id,
+            title="Collection Completed",
+            message="Collection completed at Lost & Found Office. Thank you for using AI Lost & Found.",
+            notification_type="collection_completed",
+            is_read=False,
+            email_sent=False
+        )
+        db.add(notif)
+
+    db.commit()
+    db.refresh(match)
+    return match
+
 @router.put("/matches/{match_id}/reject", response_model=MatchResponse)
 def reject_match(
     match_id: int,
@@ -91,8 +121,7 @@ def reject_match(
     current_admin: User = Depends(get_current_admin_user)
 ):
     """
-    Reject match and set status to 'rejected'.
-    Automatically notifies the lost item owner.
+    Reject invalid match (Exception Override).
     """
     match = db.query(Match).filter(Match.id == match_id).first()
     if not match:
@@ -105,8 +134,8 @@ def reject_match(
         notif = Notification(
             user_id=lost_item.owner_id,
             match_id=match.id,
-            title="AI Match Rejected",
-            message="AI match rejected after administrator review.",
+            title="Match Rejected",
+            message="Match evaluated as invalid after office inspection.",
             notification_type="rejected",
             is_read=False,
             email_sent=False
@@ -117,48 +146,15 @@ def reject_match(
     db.refresh(match)
     return match
 
-@router.get("/collections", response_model=List[MatchResponse])
-def get_ready_for_collection_matches(
+@router.get("/inventory", response_model=List[FoundItemResponse])
+def get_office_inventory(
     db: Session = Depends(get_db),
     current_admin: User = Depends(get_current_admin_user)
 ):
     """
-    List all matches currently ready for collection.
+    List physical inventory items currently held at the Lost & Found Office.
     """
-    return db.query(Match).filter(Match.status == "ready_for_collection").order_by(Match.created_at.desc()).all()
-
-@router.put("/matches/{match_id}/collect", response_model=MatchResponse)
-def mark_match_as_collected(
-    match_id: int,
-    db: Session = Depends(get_db),
-    current_admin: User = Depends(get_current_admin_user)
-):
-    """
-    Mark match status as 'confirmed' (Collected).
-    Automatically notifies the lost item owner.
-    """
-    match = db.query(Match).filter(Match.id == match_id).first()
-    if not match:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Match not found.")
-
-    match.status = "confirmed"
-
-    lost_item = match.lost_item
-    if lost_item and lost_item.owner_id:
-        notif = Notification(
-            user_id=lost_item.owner_id,
-            match_id=match.id,
-            title="Collection Completed",
-            message="Collection completed. Thank you for using AI Lost & Found.",
-            notification_type="collection_completed",
-            is_read=False,
-            email_sent=False
-        )
-        db.add(notif)
-
-    db.commit()
-    db.refresh(match)
-    return match
+    return db.query(FoundItem).order_by(FoundItem.created_at.desc()).all()
 
 @router.get("/users", response_model=List[UserResponse])
 def list_all_users(
