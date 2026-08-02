@@ -15,15 +15,15 @@ router = APIRouter(prefix="/matches", tags=["Matches"])
 
 @router.get("/", response_model=List[MatchResponse])
 def list_matches(
-    min_confidence: float = 0.0,
+    min_confidence: float = 0.70,
     status_filter: str | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """
-    List matches for items owned/found by the current user.
+    List high-confidence AI matches for items owned/found by the current user.
+    Defaults to filtering out low-confidence noise (< 0.70).
     """
-    # Join with LostItem and FoundItem to restrict to user items
     user_lost_ids = [item.id for item in db.query(LostItem.id).filter(LostItem.owner_id == current_user.id).all()]
     user_found_ids = [item.id for item in db.query(FoundItem.id).filter(FoundItem.finder_id == current_user.id).all()]
 
@@ -56,9 +56,9 @@ def update_match_status(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Update match status ('pending', 'confirmed', 'rejected').
+    Update match status ('pending', 'confirmed', 'rejected', 'collected').
     """
-    valid_statuses = {"pending", "confirmed", "rejected"}
+    valid_statuses = {"pending", "confirmed", "rejected", "collected", "handed_over", "waiting_for_pickup"}
     if status_in.status not in valid_statuses:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
