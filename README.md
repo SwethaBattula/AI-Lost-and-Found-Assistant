@@ -3,7 +3,7 @@
 An AI-powered Lost & Found platform that uses semantic text matching and visual feature similarity to automatically identify lost and found items.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https.mit-license.org)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141.1-009688.svg?logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-18.2.0-61DAFB.svg?logo=react)](https://reactjs.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4.1-38B2AC.svg?logo=tailwind-css)](https://tailwindcss.com)
 
@@ -11,16 +11,29 @@ An AI-powered Lost & Found platform that uses semantic text matching and visual 
 
 ## 🌟 Key Features
 
-- 🔐 **JWT Authentication & Argon2 Security**: Secure registration, login, and user profile management with Argon2id password hashing and Bearer tokens.
-- 📋 **Lost & Found Item Registries**: Complete item management featuring location tags, date filters, item categories, and image upload dropzones.
+- 🔐 **Role-Based Authentication & Argon2 Security**: Student & Administrator role support with Argon2id password hashing, Bearer JWT tokens, and RBAC endpoint guards.
+- 👑 **Administrator Portal & Verification Workflow**: Admin dashboard featuring global platform metrics, match approval/rejection audit, handover collection management, and read-only user directory.
+- 📋 **Lost & Found Item Registries**: Complete item management featuring location tags, date filters, item categories, community catalog search, and image upload dropzones.
 - 🧠 **Multimodal AI Semantic Matching Engine**:
   - **Text Embeddings**: `SentenceTransformers` (`all-MiniLM-L6-v2`) dense vector representations.
   - **Visual Embeddings**: `OpenCLIP` (`ViT-B-32`) visual feature extraction.
   - **Vector Search**: `FAISS` high-speed nearest-neighbor indexing.
   - **Lazy Loading**: AI models load on demand without delaying FastAPI startup.
-- ⚖️ **Interactive Match Resolution**: Side-by-side match comparison cards with similarity breakdown percentages and status toggles (`pending`, `confirmed`, `rejected`).
-- 🔔 **Automated Email & History Notifications**: Email alerts sent to owners upon match discovery, backed by an in-app notification log.
-- 🎨 **Modern Dark Mode UI**: Stunning glassmorphism interface built with React, Vite, Tailwind CSS, custom modals, floating toasts, and zero browser alert popups.
+- ⚖️ **Interactive Match Resolution**: Side-by-side match comparison cards with similarity breakdown percentages, match stage lifecycle timeline, and status toggles (`pending`, `under_review`, `ready_for_collection`, `confirmed`, `rejected`).
+- 🔔 **Automated Email & Notification Center**: Real-time match discovery, admin verification alerts, and collection notifications backed by an in-app notification center.
+- 🎨 **Modern Dark Mode UI**: Premium glassmorphism interface built with React 18, Vite, Tailwind CSS, custom modals, floating toasts, and zero browser alert popups.
+
+---
+
+## 🔑 Default Administrator Seed Credentials
+
+Upon initial database initialization, the system automatically seeds a default administrator account:
+
+- **Email**: `admin@ailostfound.com`
+- **Password**: `AdminPass123!`
+- **Role**: `admin`
+
+*(Admin and Student users sign in through the same `/login` page and are automatically routed based on their role).*
 
 ---
 
@@ -38,36 +51,6 @@ An AI-powered Lost & Found platform that uses semantic text matching and visual 
 - **Routing**: React Router DOM v6
 - **HTTP Client**: Axios with JWT Interceptors
 - **Icons**: Lucide React
-
----
-
-## 📁 Folder Structure
-
-```
-AI-Lost-and-Found-Assistant/
-├── backend/
-│   ├── app/
-│   │   ├── api/          # FastAPI route handlers
-│   │   ├── auth/         # Argon2 & JWT authentication logic
-│   │   ├── core/         # Settings, exception handlers, logging
-│   │   ├── database/     # SQLAlchemy DB session & initialization
-│   │   ├── models/       # Database ORM models (User, Lost, Found, Match, Notification)
-│   │   ├── schemas/      # Pydantic validation schemas
-│   │   ├── services/ai/  # Sentence Transformers, OpenCLIP & FAISS engine
-│   │   └── main.py       # FastAPI application entrypoint
-│   ├── uploads/          # Static file storage for item photos
-│   └── requirements.txt  # Python backend dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── components/   # ItemCard, ItemForm, Modals, TopNav, Sidebar
-│   │   ├── context/      # AuthContext & ToastContext
-│   │   ├── pages/        # Dashboard, Auth, Lost, Found, Matches, Profile
-│   │   └── services/     # Axios API services
-│   ├── package.json      # Frontend npm dependencies
-│   └── vite.config.js    # Vite configuration
-├── PROJECT_DOCUMENTATION.md
-└── README.md
-```
 
 ---
 
@@ -116,41 +99,27 @@ Frontend application will be accessible at `http://localhost:3000`.
 
 ## 📖 API Documentation Summary
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/auth/register` | No | Register new user account |
-| `POST` | `/auth/login` | No | Authenticate & return JWT token |
-| `GET` | `/auth/me` | Yes | Get authenticated user profile |
-| `GET` | `/lost-items/` | Yes | List lost items (`?my_items_only=true`) |
-| `POST` | `/lost-items/` | Yes | Report a lost item with photo |
-| `PUT` | `/lost-items/{id}` | Yes | Update lost item report |
-| `DELETE` | `/lost-items/{id}` | Yes | Delete lost item report |
-| `GET` | `/found-items/` | Yes | List found items (`?my_items_only=true`) |
-| `POST` | `/found-items/` | Yes | Register a found item with photo |
-| `PUT` | `/found-items/{id}` | Yes | Update found item registration |
-| `DELETE` | `/found-items/{id}` | Yes | Delete found item registration |
-| `GET` | `/matches/` | Yes | List AI matches with similarity breakdown |
-| `PUT` | `/matches/{id}/status` | Yes | Update match status (`confirmed`/`rejected`) |
-| `POST` | `/matches/trigger-matching` | Yes | Run AI matching sweep |
-| `GET` | `/notifications/` | Yes | Fetch notification alert history |
-
----
-
-## 🖼️ Application Screenshots
-
-*(Placeholders for GitHub repository visual showcase)*
-
-| Dashboard Overview | AI Matches & Similarity |
-|---|---|
-| ![Dashboard](https://via.placeholder.com/600x350/0f172a/ffffff?text=Dashboard+Overview) | ![Matches](https://via.placeholder.com/600x350/0f172a/ffffff?text=AI+Matches+Breakdown) |
-
----
-
-## 🔮 Future Improvements
-
-- 📍 **GIS Location Mapping**: Map radius search & lost location clustering.
-- 💬 **In-App Finder Chat**: Real-time messaging between lost item owners and finders.
-- 📱 **Push & SMS Alerts**: Twilio integration for instant SMS notifications.
+| Method | Endpoint | Auth / Role | Description |
+|--------|----------|-------------|-------------|
+| `POST` | `/auth/register` | Public | Register new student account |
+| `POST` | `/auth/login` | Public | Authenticate user & return JWT token |
+| `GET` | `/auth/me` | Authenticated | Get authenticated user profile |
+| `GET` | `/lost-items/` | Authenticated | List lost items (`?my_items_only=true`) |
+| `POST` | `/lost-items/` | Authenticated | Report a lost item with photo |
+| `GET` | `/found-items/` | Authenticated | List found items (`?my_items_only=true`) |
+| `POST` | `/found-items/` | Authenticated | Register a found item with photo |
+| `GET` | `/matches/` | Authenticated | List AI matches with similarity breakdown |
+| `PUT` | `/matches/{id}/status` | Authenticated | Update match status (`confirmed`/`rejected`) |
+| `POST` | `/matches/trigger-matching` | Authenticated | Run AI matching sweep |
+| `GET` | `/notifications/` | Authenticated | Fetch notification alert history |
+| `PUT` | `/notifications/mark-read` | Authenticated | Mark all notifications as read |
+| `GET` | `/admin/stats` | Admin Only | Get global platform statistics |
+| `GET` | `/admin/matches` | Admin Only | List all system matches for audit |
+| `PUT` | `/admin/matches/{id}/approve` | Admin Only | Approve match $\rightarrow$ status `ready_for_collection` |
+| `PUT` | `/admin/matches/{id}/reject` | Admin Only | Reject match $\rightarrow$ status `rejected` |
+| `GET` | `/admin/collections` | Admin Only | List matches awaiting physical handover |
+| `PUT` | `/admin/matches/{id}/collect` | Admin Only | Mark match as `confirmed` (Collected) |
+| `GET` | `/admin/users` | Admin Only | Read-only directory of registered users |
 
 ---
 
